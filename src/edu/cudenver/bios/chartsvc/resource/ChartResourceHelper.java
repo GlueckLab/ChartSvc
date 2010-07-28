@@ -23,10 +23,14 @@ public class ChartResourceHelper
         if (!node.getNodeName().equals(ChartConstants.TAG_CHART))
             throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST, "Invalid root node '" + node.getNodeName() + "' when parsing chart object");
         
-        // parse the rows / columns from the attribute list
+        // parse the title from the attribute list
         NamedNodeMap attrs = node.getAttributes();
         Node chartTitleNode = attrs.getNamedItem(ChartConstants.ATTR_TITLE);
         if (chartTitleNode != null) chart.setTitle(chartTitleNode.getNodeValue());
+        // parse whether the legend should be displayed
+        Node legendNode = attrs.getNamedItem(ChartConstants.ATTR_LEGEND);
+        if (legendNode != null) 
+            chart.setLegend(Boolean.parseBoolean(legendNode.getNodeValue()));
         
         /* process the child elements.  Includes matrix and list inputs */
         NodeList children = node.getChildNodes();
@@ -72,8 +76,16 @@ public class ChartResourceHelper
         	try
         	{
         		Node numTicksNode = attrs.getNamedItem(ChartConstants.ATTR_TICKS);
-        		if (numTicksNode != null && axis != null) 
+        		if (numTicksNode != null) 
         			axis.setNumberTicks(Integer.parseInt(numTicksNode.getNodeValue()));
+        		
+                Node rangeMinNode = attrs.getNamedItem(ChartConstants.ATTR_MIN);
+                if (rangeMinNode != null) 
+                    axis.setRangeMin(Double.parseDouble(rangeMinNode.getNodeValue()));
+                
+                Node rangeMaxNode = attrs.getNamedItem(ChartConstants.ATTR_MAX);
+                if (rangeMaxNode != null) 
+                    axis.setRangeMax(Double.parseDouble(rangeMaxNode.getNodeValue()));
         	}
         	catch (NumberFormatException e)
         	{

@@ -4,9 +4,10 @@ import java.util.ArrayList;
 
 public class Chart
 {
-	protected String title;
-	protected Axis XAxis;
-	protected Axis YAxis;
+	protected String title = "";
+	protected boolean legend = false;
+	protected Axis XAxis = null;
+	protected Axis YAxis = null;
 	protected ArrayList<Series> seriesList = new ArrayList<Series>();
 	
 	public Chart()
@@ -53,6 +54,16 @@ public class Chart
 	{
 		this.title = title;
 	}
+
+    public boolean hasLegend()
+    {
+        return legend;
+    }
+
+    public void setLegend(boolean legend)
+    {
+        this.legend = legend;
+    }
 	
 	
 }

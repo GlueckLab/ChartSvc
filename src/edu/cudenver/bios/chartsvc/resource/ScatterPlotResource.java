@@ -2,10 +2,13 @@ package edu.cudenver.bios.chartsvc.resource;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.restlet.Context;
 import org.restlet.data.Form;
@@ -13,21 +16,21 @@ import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Resource;
 import org.restlet.resource.ResourceException;
-import org.restlet.resource.StringRepresentation;
 import org.restlet.resource.Variant;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
-import edu.cudenver.bios.chartsvc.application.ChartConstants;
 import edu.cudenver.bios.chartsvc.application.ChartLogger;
+import edu.cudenver.bios.chartsvc.domain.Axis;
 import edu.cudenver.bios.chartsvc.domain.Chart;
 import edu.cudenver.bios.chartsvc.domain.Series;
 import edu.cudenver.bios.chartsvc.representation.ChartImageRepresentation;
 import edu.cudenver.bios.chartsvc.representation.ErrorXMLRepresentation;
 
-import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
@@ -40,6 +43,9 @@ public class ScatterPlotResource extends Resource
 {
 	private static final int DEFAULT_WIDTH = 300;
 	private static final int DEFAULT_HEIGHT = 300;
+
+	private static final String FORM_TAG_CHART = "chart";
+    private static final String FORM_TAG_SAVE = "save";
 
 	/**
 	 * Create a scatter plot 
@@ -92,34 +98,57 @@ public class ScatterPlotResource extends Resource
     @Override 
     public void acceptRepresentation(Representation entity)
     {
-        DomRepresentation rep = new DomRepresentation(entity);
-
         try
         {
+            Form form = new Form(entity);
+            String chartSpecificationXML = form.getFirstValue(FORM_TAG_CHART);
+            if (chartSpecificationXML == null || chartSpecificationXML.isEmpty())
+                throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST, "Missing chart specification");
+
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(chartSpecificationXML)));
+            
             // parse the chart parameters from the entity body
-            Chart chartSpecification = ChartResourceHelper.chartFromDomNode(rep.getDocument().getDocumentElement());
+            Chart chartSpecification = ChartResourceHelper.chartFromDomNode(doc.getDocumentElement());
 
             // build a JFreeChart from the specs
             JFreeChart renderedChart = buildScatterPlot(chartSpecification);
-            ChartUtilities.saveChartAsJPEG(new File("C:\\Users\\Owner\\Desktop\\foo.jpeg"), renderedChart, DEFAULT_WIDTH, DEFAULT_HEIGHT);
             // write to an image representation
             ChartImageRepresentation response = 
             	new ChartImageRepresentation(renderedChart, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
-
-            // TODO: remove
-            Form responseHeaders = (Form) getResponse().getAttributes().get("org.restlet.http.headers");  
-            if (responseHeaders == null)  
-            {  
-            	responseHeaders = new Form();  
-            	getResponse().getAttributes().put("org.restlet.http.headers", responseHeaders);  
-            }  
-            responseHeaders.add("Content-type", "application/force-download");
-            responseHeaders.add("Content-disposition", "attachment; filename=chart.jpg");
-            
-            
+            // Add file save headers if requested
+            String saveStr = form.getFirstValue(FORM_TAG_SAVE);
+            boolean save = Boolean.parseBoolean(saveStr);
+            if (save)
+            {
+                Form responseHeaders = (Form) getResponse().getAttributes().get("org.restlet.http.headers");  
+                if (responseHeaders == null)  
+                {  
+                    responseHeaders = new Form();  
+                    getResponse().getAttributes().put("org.restlet.http.headers", responseHeaders);  
+                }  
+                responseHeaders.add("Content-type", "application/force-download");
+                responseHeaders.add("Content-disposition", "attachment; filename=chart.jpg");
+            }
+      
             getResponse().setEntity(response); 
             getResponse().setStatus(Status.SUCCESS_CREATED);
+        }
+        catch (SAXException se)
+        {
+            ChartLogger.getInstance().error(se.getMessage());
+            try { getResponse().setEntity(new ErrorXMLRepresentation(se.getMessage())); }
+            catch (IOException e) {}
+            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
+        }
+        catch (ParserConfigurationException pe)
+        {
+            ChartLogger.getInstance().error(pe.getMessage());
+            try { getResponse().setEntity(new ErrorXMLRepresentation(pe.getMessage())); }
+            catch (IOException e) {}
+            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
         }
         catch (IOException ioe)
         {
@@ -148,20 +177,24 @@ public class ScatterPlotResource extends Resource
     throws ResourceException
     {
     	// the first series is treated as the x values
-    	Series xSeries = chart.getSeries().get(0);
-    	if (xSeries == null)
+    	if (chart.getSeries() == null || chart.getSeries().size() <= 0)
     		throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST, "No data series specified");
-    	ArrayList<Double> xData = xSeries.getData();
     	
     	// create the jfree chart series
     	XYSeriesCollection chartData = new XYSeriesCollection();
         // use a spline renderer to make the connecting lines smooth
         XYSplineRenderer rend = new XYSplineRenderer();
         
+        ArrayList<Double> xData = null;
         int seriesIdx = 0;
     	for(Series series: chart.getSeries())
     	{
-    		if (series == xSeries) continue;
+    		if (seriesIdx == 0)
+    		{
+    		    xData = series.getData();
+    		    seriesIdx++;
+    		    continue;
+    		}
     		
     		XYSeries xySeries = new XYSeries(series.getLabel());
     		int dataIdx = 0;
@@ -172,11 +205,13 @@ public class ScatterPlotResource extends Resource
     		}
     		
     		// set the line style
-            rend.setSeriesPaint(seriesIdx, Color.BLACK);
-            rend.setSeriesStroke(seriesIdx, 
-            		new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-            				1.0f, new float[] {(float) seriesIdx, 6.0f}, 0.0f));
-    		
+            rend.setSeriesPaint(seriesIdx-1, Color.BLACK);
+            if (seriesIdx > 1)
+            {
+                rend.setSeriesStroke(seriesIdx-1, 
+                        new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                                1.0f, new float[] {(float) seriesIdx, (float) 1.5*seriesIdx}, 0.0f));
+            }
             // add the series to the data set
     		chartData.addSeries(xySeries);
     		seriesIdx++;
@@ -186,18 +221,35 @@ public class ScatterPlotResource extends Resource
         rend.setBaseShapesVisible(false);
 
         // Create the line chart
-        String xLabel = "";
-        String yLabel = "";
-        if (chart.getXAxis() != null) xLabel = chart.getXAxis().getLabel();
-        if (chart.getYAxis() != null) yLabel = chart.getYAxis().getLabel();
-
-        XYPlot plot = new XYPlot((XYDataset) chartData, new NumberAxis(xLabel), 
-                new NumberAxis(yLabel), rend);
+        NumberAxis xAxis = new NumberAxis();
+        if (chart.getXAxis() != null)
+        {
+            Axis xAxisSpec = chart.getXAxis();
+            xAxis.setLabel(xAxisSpec.getLabel());
+            if (!Double.isNaN(xAxisSpec.getRangeMin()) &&
+                    !Double.isNaN(xAxisSpec.getRangeMax()))
+            {
+                xAxis.setRange(xAxisSpec.getRangeMin(), xAxisSpec.getRangeMax());
+            }
+        }
+        NumberAxis yAxis = new NumberAxis();
+        if (chart.getYAxis() != null)
+        {
+            Axis yAxisSpec = chart.getYAxis();
+            yAxis.setLabel(chart.getYAxis().getLabel());
+            if (!Double.isNaN(yAxisSpec.getRangeMin()) &&
+                    !Double.isNaN(yAxisSpec.getRangeMax()))
+            {
+                xAxis.setRange(yAxisSpec.getRangeMin(), yAxisSpec.getRangeMax());
+            }
+        }
+        XYPlot plot = new XYPlot((XYDataset) chartData, xAxis, 
+                yAxis, rend);
         plot.setDomainGridlinesVisible(false);
         plot.setRangeGridlinesVisible(false);
        
         JFreeChart renderedChart = new JFreeChart(chart.getTitle(), 
-                JFreeChart.DEFAULT_TITLE_FONT, plot, false);
+                JFreeChart.DEFAULT_TITLE_FONT, plot, chart.hasLegend());
         renderedChart.setBackgroundPaint(Color.WHITE);
         
         return renderedChart;

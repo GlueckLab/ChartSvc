@@ -19,8 +19,9 @@ public class ChartConstants
 	public static final String ATTR_LABEL = "label";
 	public static final String ATTR_TITLE = "title";
 	public static final String ATTR_TICKS = "ticks";
-
-
+    public static final String ATTR_MIN = "min";
+    public static final String ATTR_MAX = "max";
+    public static final String ATTR_LEGEND = "legend";
 
 
 }
