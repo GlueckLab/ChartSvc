@@ -2,10 +2,7 @@ package edu.cudenver.bios.chartsvc.application;
 
 public class ChartConstants
 {
-	public static final String QUERY_PARAM_TITLE = "title";
-	public static final String QUERY_PARAM_XLAB = "xlab";
-	public static final String QUERY_PARAM_YLAB = "ylab";
-	public static final String QUERY_PARAM_SLAB = "slab";
+	// form entry containing data
 	public static final String QUERY_PARAM_DATA = "data";
 	
 	// tag names
@@ -14,7 +11,7 @@ public class ChartConstants
 	public static final String TAG_XAXIS = "xaxis";
 	public static final String TAG_YAXIS = "yaxis";
 	public static final String TAG_SERIES = "series";
-	public static final String TAG_DATA = "d";
+	public static final String TAG_POINT = "p";
 	// attribute names
 	public static final String ATTR_LABEL = "label";
 	public static final String ATTR_TITLE = "title";
@@ -22,6 +19,9 @@ public class ChartConstants
     public static final String ATTR_MIN = "min";
     public static final String ATTR_MAX = "max";
     public static final String ATTR_LEGEND = "legend";
+    public static final String ATTR_X = "x";
+    public static final String ATTR_Y = "y";
+
 
 
 }

@@ -2,6 +2,7 @@ package edu.cudenver.bios.chartsvc.resource;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -185,32 +186,22 @@ public class ScatterPlotResource extends Resource
         // use a spline renderer to make the connecting lines smooth
         XYSplineRenderer rend = new XYSplineRenderer();
         
-        ArrayList<Double> xData = null;
         int seriesIdx = 0;
     	for(Series series: chart.getSeries())
-    	{
-    		if (seriesIdx == 0)
-    		{
-    		    xData = series.getData();
-    		    seriesIdx++;
-    		    continue;
-    		}
-    		
+    	{    		
     		XYSeries xySeries = new XYSeries(series.getLabel());
-    		int dataIdx = 0;
-    		for(Double data: series.getData())
+    		for(Point2D.Double point: series.getData())
     		{
-    			xySeries.add(xData.get(dataIdx), data);
-    			dataIdx++;
+    			xySeries.add(point.x, point.y);
     		}
     		
     		// set the line style
-            rend.setSeriesPaint(seriesIdx-1, Color.BLACK);
-            if (seriesIdx > 1)
+            rend.setSeriesPaint(seriesIdx, Color.BLACK);
+            if (seriesIdx > 0)
             {
-                rend.setSeriesStroke(seriesIdx-1, 
+                rend.setSeriesStroke(seriesIdx, 
                         new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-                                1.0f, new float[] {(float) seriesIdx, (float) 1.5*seriesIdx}, 0.0f));
+                                1.0f, new float[] {(float) seriesIdx, (float) 2*seriesIdx}, 0.0f));
             }
             // add the series to the data set
     		chartData.addSeries(xySeries);
@@ -222,6 +213,7 @@ public class ScatterPlotResource extends Resource
 
         // Create the line chart
         NumberAxis xAxis = new NumberAxis();
+        xAxis.setAutoRangeIncludesZero(false);
         if (chart.getXAxis() != null)
         {
             Axis xAxisSpec = chart.getXAxis();
@@ -247,11 +239,11 @@ public class ScatterPlotResource extends Resource
                 yAxis, rend);
         plot.setDomainGridlinesVisible(false);
         plot.setRangeGridlinesVisible(false);
-       
+
         JFreeChart renderedChart = new JFreeChart(chart.getTitle(), 
                 JFreeChart.DEFAULT_TITLE_FONT, plot, chart.hasLegend());
         renderedChart.setBackgroundPaint(Color.WHITE);
-        
+
         return renderedChart;
     }
 }

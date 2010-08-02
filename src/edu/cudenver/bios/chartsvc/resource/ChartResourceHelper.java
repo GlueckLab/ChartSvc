@@ -105,22 +105,32 @@ public class ChartResourceHelper
 		
         if (series != null)
         {
-            NodeList children = node.getChildNodes();
-            if (children != null && children.getLength() > 0)
-            {
-                for (int i = 0; i < children.getLength(); i++)
-                {
-                    Node child = children.item(i);
-                    if (ChartConstants.TAG_DATA.equals(child.getNodeName()))
-                    {
-                    	Node dataNode = child.getFirstChild();
-                    	if (dataNode != null)
-                    	{
-                    		series.addData(Double.parseDouble(dataNode.getNodeValue()));
-                    	}
-                    }
-                }
-            }
+        	NodeList children = node.getChildNodes();
+        	if (children != null && children.getLength() > 0)
+        	{
+        		for (int i = 0; i < children.getLength(); i++)
+        		{
+        			Node child = children.item(i);
+        			if (ChartConstants.TAG_POINT.equals(child.getNodeName()))
+        			{
+        				NamedNodeMap pointAttrs = child.getAttributes();
+        				try
+        				{
+        					Node xNode = pointAttrs.getNamedItem(ChartConstants.ATTR_X);
+        					Node yNode = pointAttrs.getNamedItem(ChartConstants.ATTR_Y);
+        					if (xNode != null && yNode != null)
+        					{
+        						series.addData(Double.parseDouble(xNode.getNodeValue()), 
+        								Double.parseDouble(yNode.getNodeValue()));
+        					}
+        				}
+        				catch (NumberFormatException nfe)
+        				{
+        					ChartLogger.getInstance().warn("Ignoring invalid data point", nfe);
+        				}
+        			}
+        		}
+        	}
         }
         
 		return series;
