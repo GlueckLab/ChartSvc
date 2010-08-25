@@ -26,6 +26,7 @@ import org.restlet.Restlet;
 import org.restlet.Router;
 
 import edu.cudenver.bios.chartsvc.resource.DefaultResource;
+import edu.cudenver.bios.chartsvc.resource.LegendResource;
 import edu.cudenver.bios.chartsvc.resource.ScatterPlotResource;
 
 
@@ -63,7 +64,8 @@ public class ChartApplication extends Application
 
         // Scatter chart resource
         router.attach("/scatter", ScatterPlotResource.class);
-        
+        // Legend resource - returns the legend as a separate image
+        router.attach("/legend", LegendResource.class);
         return router;
     }
 }
