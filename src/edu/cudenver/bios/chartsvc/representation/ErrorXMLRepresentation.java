@@ -1,7 +1,6 @@
 /*
- * Power Service for the GLIMMPSE Software System.  Processes
- * incoming HTTP requests for power, sample size, and detectable
- * difference
+ * Chart Service for the GLIMMPSE Software System.  Creates
+ * publishable quality scatter plots.
  * 
  * Copyright (C) 2010 Regents of the University of Colorado.  
  *
