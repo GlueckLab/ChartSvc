@@ -58,6 +58,13 @@ import edu.cudenver.bios.chartsvc.domain.Series;
 import edu.cudenver.bios.chartsvc.representation.ChartImageRepresentation;
 import edu.cudenver.bios.chartsvc.representation.ErrorXMLRepresentation;
 
+/**
+ * Creates a legend for a scatter plot as a separate image.
+ * Used for plots with several data series resulting in a large
+ * legend.
+ * @author Sarah Kreidler
+ *
+ */
 public class LegendResource extends Resource 
 {
 	private static final int DEFAULT_WIDTH = 300;

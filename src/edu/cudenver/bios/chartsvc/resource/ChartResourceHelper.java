@@ -1,3 +1,23 @@
+/*
+ * Chart Service for the GLIMMPSE Software System.  Creates
+ * publishable quality scatter plots.
+ * 
+ * Copyright (C) 2010 Regents of the University of Colorado.  
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package edu.cudenver.bios.chartsvc.resource;
 
 import org.restlet.data.Status;
@@ -12,8 +32,19 @@ import edu.cudenver.bios.chartsvc.domain.Axis;
 import edu.cudenver.bios.chartsvc.domain.Chart;
 import edu.cudenver.bios.chartsvc.domain.Series;
 
+/**
+ * Helper class to parse incoming chart requests
+ * @author Sarah Kreidler
+ *
+ */
 public class ChartResourceHelper
 {
+	/**
+	 * Create a chart object from an XML chart description
+	 * @param node node associated with the chart tag
+	 * @return chart object
+	 * @throws ResourceException
+	 */
 	public static Chart chartFromDomNode(Node node)
 	throws ResourceException
 	{
@@ -63,6 +94,12 @@ public class ChartResourceHelper
 		return chart;
 	}
 	
+	/**
+	 * Create an axis object from an XML axis description
+	 * @param node node associated with the axis tag
+	 * @return axis object
+	 * @throws ResourceException
+	 */
 	public static Axis axisFromDomNode(Node node)
 	throws ResourceException
 	{
@@ -95,6 +132,12 @@ public class ChartResourceHelper
         return axis;
 	}
 	
+	/**
+	 * Create an data series object from an XML data series description
+	 * @param node node associated with the data series tag
+	 * @return data series object
+	 * @throws ResourceException
+	 */
 	public static Series seriesFromDomNode(Node node)
 	throws ResourceException
 	{
