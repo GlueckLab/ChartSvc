@@ -34,6 +34,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYSplineRenderer;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -57,6 +58,7 @@ import edu.cudenver.bios.chartsvc.domain.Chart;
 import edu.cudenver.bios.chartsvc.domain.Series;
 import edu.cudenver.bios.chartsvc.representation.ChartImageRepresentation;
 import edu.cudenver.bios.chartsvc.representation.ErrorXMLRepresentation;
+import edu.cudenver.bios.chartsvc.representation.LegendImageRepresentation;
 
 /**
  * Creates a legend for a scatter plot as a separate image.
@@ -139,10 +141,10 @@ public class LegendResource extends Resource
             Chart chartSpecification = ChartResourceHelper.chartFromDomNode(doc.getDocumentElement());
 
             // build a JFreeChart from the specs
-            JFreeChart renderedChart = buildScatterPlot(chartSpecification);
+            XYPlot plot = buildScatterPlot(chartSpecification);
             // write to an image representation
-            ChartImageRepresentation response = 
-            	new ChartImageRepresentation(renderedChart, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            LegendImageRepresentation response = 
+            	new LegendImageRepresentation(plot, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
             // Add file save headers if requested
             String saveStr = form.getFirstValue(FORM_TAG_SAVE);
@@ -199,7 +201,7 @@ public class LegendResource extends Resource
         }
     }
     
-    private JFreeChart buildScatterPlot(Chart chart)
+    private XYPlot buildScatterPlot(Chart chart)
     throws ResourceException
     {
     	// the first series is treated as the x values
@@ -265,10 +267,6 @@ public class LegendResource extends Resource
         plot.setDomainGridlinesVisible(false);
         plot.setRangeGridlinesVisible(false);
 
-        JFreeChart renderedChart = new JFreeChart(chart.getTitle(), 
-                JFreeChart.DEFAULT_TITLE_FONT, plot, chart.hasLegend());
-        renderedChart.setBackgroundPaint(Color.WHITE);
-
-        return renderedChart;
+        return plot;
     }
 }
