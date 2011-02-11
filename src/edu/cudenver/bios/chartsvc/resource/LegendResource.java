@@ -25,6 +25,7 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -75,6 +76,8 @@ public class LegendResource extends Resource
 	private static final String FORM_TAG_CHART = "chart";
     private static final String FORM_TAG_SAVE = "save";
 
+	private Form queryParams= null;
+	
 	/**
 	 * Create a scatter plot 
 	 * @param context restlet context
@@ -84,7 +87,7 @@ public class LegendResource extends Resource
     public LegendResource(Context context, Request request, Response response) 
     {
         super(context, request, response);
-
+		queryParams = request.getResourceRef().getQueryAsForm();
         // This representation has only one type of representation.
         getVariants().add(new Variant(MediaType.IMAGE_JPEG));
     }
@@ -95,7 +98,7 @@ public class LegendResource extends Resource
     @Override
     public boolean allowGet()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -113,9 +116,62 @@ public class LegendResource extends Resource
     @Override
     public boolean allowPost() 
     {
-        return  true;
+        return  false;
     }
 
+	/**
+	 * Returns a full representation for a given variant.
+	 */
+	@Override
+	public Representation represent(Variant variant) 
+	{
+		LegendImageRepresentation rep = null;
+		try
+		{
+			// parse the chart parameters from the entity body
+			Chart chartSpecification = ChartResourceHelper.chartFromQueryString(queryParams, false);
+
+			// build a JFreeChart from the specs
+			XYPlot renderedChart = buildScatterPlot(chartSpecification);
+			// write to an image representation
+			rep = new LegendImageRepresentation(renderedChart, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+
+			// Add file save headers if requested
+			String saveStr = queryParams.getFirstValue(FORM_TAG_SAVE);
+			boolean save = Boolean.parseBoolean(saveStr);
+			if (save)
+			{
+				Form responseHeaders = (Form) getResponse().getAttributes().get("org.restlet.http.headers");  
+				if (responseHeaders == null)  
+				{  
+					responseHeaders = new Form();  
+					getResponse().getAttributes().put("org.restlet.http.headers", responseHeaders);  
+				}  
+				responseHeaders.add("Content-type", "application/force-download");
+				responseHeaders.add("Content-disposition", "attachment; filename=chart.jpg");
+			}
+
+			getResponse().setEntity(rep); 
+			getResponse().setStatus(Status.SUCCESS_CREATED);
+		}
+		catch (IllegalArgumentException iae)
+		{
+			ChartLogger.getInstance().error(iae.getMessage());
+			try { getResponse().setEntity(new ErrorXMLRepresentation(iae.getMessage())); }
+			catch (IOException e) {}
+			getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
+		}
+		catch (ResourceException re)
+		{
+			ChartLogger.getInstance().error(re.getMessage());
+			try { getResponse().setEntity(new ErrorXMLRepresentation(re.getMessage())); }
+			catch (IOException e) {}
+			getResponse().setStatus(re.getStatus());
+		}
+
+		return rep;
+	}
+	
     /**
      * Process a POST request to perform a set of power
      * calculations.  Please see REST API documentation for details on
@@ -201,72 +257,79 @@ public class LegendResource extends Resource
         }
     }
     
-    private XYPlot buildScatterPlot(Chart chart)
-    throws ResourceException
-    {
-    	// the first series is treated as the x values
-    	if (chart.getSeries() == null || chart.getSeries().size() <= 0)
-    		throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST, "No data series specified");
-    	
-    	// create the jfree chart series
-    	XYSeriesCollection chartData = new XYSeriesCollection();
-        // use a spline renderer to make the connecting lines smooth
-        XYSplineRenderer rend = new XYSplineRenderer();
-        
-        int seriesIdx = 0;
-    	for(Series series: chart.getSeries())
-    	{    		
-    		XYSeries xySeries = new XYSeries(series.getLabel());
-//    	TODO	for(Point2D.Double point: series.getData())
-//    		{
-//    			xySeries.add(point.x, point.y);
-//    		}
-    		
-    		// set the line style
-            rend.setSeriesPaint(seriesIdx, Color.BLACK);
-            if (seriesIdx > 0)
-            {
-                rend.setSeriesStroke(seriesIdx, 
-                        new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-                                1.0f, new float[] {(float) seriesIdx, (float) 2*seriesIdx}, 0.0f));
-            }
-            // add the series to the data set
-    		chartData.addSeries(xySeries);
-    		seriesIdx++;
-    	}
+	private XYPlot buildScatterPlot(Chart chart)
+	throws ResourceException
+	{
+		// the first series is treated as the x values
+		if (chart.getSeries() == null || chart.getSeries().size() <= 0)
+			throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST, "No data series specified");
 
-        // turn off shapes displayed at each data point to make a smooth curve
-        rend.setBaseShapesVisible(false);
+		// create the jfree chart series
+		XYSeriesCollection chartData = new XYSeriesCollection();
+		// use a spline renderer to make the connecting lines smooth
+		XYSplineRenderer rend = new XYSplineRenderer();
 
-        // Create the line chart
-        NumberAxis xAxis = new NumberAxis();
-        xAxis.setAutoRangeIncludesZero(false);
-        if (chart.getXAxis() != null)
-        {
-            Axis xAxisSpec = chart.getXAxis();
-            xAxis.setLabel(xAxisSpec.getLabel());
-            if (!Double.isNaN(xAxisSpec.getRangeMin()) &&
-                    !Double.isNaN(xAxisSpec.getRangeMax()))
-            {
-                xAxis.setRange(xAxisSpec.getRangeMin(), xAxisSpec.getRangeMax());
-            }
-        }
-        NumberAxis yAxis = new NumberAxis();
-        if (chart.getYAxis() != null)
-        {
-            Axis yAxisSpec = chart.getYAxis();
-            yAxis.setLabel(chart.getYAxis().getLabel());
-            if (!Double.isNaN(yAxisSpec.getRangeMin()) &&
-                    !Double.isNaN(yAxisSpec.getRangeMax()))
-            {
-                xAxis.setRange(yAxisSpec.getRangeMin(), yAxisSpec.getRangeMax());
-            }
-        }
-        XYPlot plot = new XYPlot((XYDataset) chartData, xAxis, 
-                yAxis, rend);
-        plot.setDomainGridlinesVisible(false);
-        plot.setRangeGridlinesVisible(false);
+		int seriesIdx = 0;
+		for(Series series: chart.getSeries())
+		{    		
+			XYSeries xySeries = new XYSeries(series.getLabel());
+			
+			List<Double> xList = series.getXCoordinates();
+			List<Double> yList = series.getYCoordinates();
+			if (xList != null && yList != null && xList.size() == yList.size())
+			{
+				for(int i = 0; i < xList.size(); i++)
+				{
+					xySeries.add(xList.get(i), yList.get(i));
+				}
+			}
+
+			// set the line style
+			rend.setSeriesPaint(seriesIdx, Color.BLACK);
+			if (seriesIdx > 0)
+			{
+				rend.setSeriesStroke(seriesIdx, 
+						new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+								1.0f, new float[] {(float) seriesIdx, (float) 2*seriesIdx}, 0.0f));
+			}
+			// add the series to the data set
+			chartData.addSeries(xySeries);
+			seriesIdx++;
+		}
+
+		// turn off shapes displayed at each data point to make a smooth curve
+		rend.setBaseShapesVisible(false);
+
+		// Create the line chart
+		NumberAxis xAxis = new NumberAxis();
+		xAxis.setAutoRangeIncludesZero(false);
+		if (chart.getXAxis() != null)
+		{
+			Axis xAxisSpec = chart.getXAxis();
+			xAxis.setLabel(xAxisSpec.getLabel());
+			if (!Double.isNaN(xAxisSpec.getRangeMin()) &&
+					!Double.isNaN(xAxisSpec.getRangeMax()))
+			{
+				xAxis.setRange(xAxisSpec.getRangeMin(), xAxisSpec.getRangeMax());
+			}
+		}
+		NumberAxis yAxis = new NumberAxis();
+		if (chart.getYAxis() != null)
+		{
+			Axis yAxisSpec = chart.getYAxis();
+			yAxis.setLabel(chart.getYAxis().getLabel());
+			if (!Double.isNaN(yAxisSpec.getRangeMin()) &&
+					!Double.isNaN(yAxisSpec.getRangeMax()))
+			{
+				xAxis.setRange(yAxisSpec.getRangeMin(), yAxisSpec.getRangeMax());
+			}
+		}
+		XYPlot plot = new XYPlot((XYDataset) chartData, xAxis, 
+				yAxis, rend);
+		plot.setDomainGridlinesVisible(false);
+		plot.setRangeGridlinesVisible(false);
 
         return plot;
-    }
+	}
+	
 }
