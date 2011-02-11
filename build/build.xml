@@ -37,6 +37,7 @@
 		<include name="jfreechart/1.0/lib/jfreechart-1.0.13.jar" /> 
 		<include name="jfreechart/1.0/lib/jcommon-1.0.16.jar" /> 
 		<include name="ApacheCommonsCodec/1.4/lib/commons-codec-1.4.jar" />
+		<include name="JMathPlot/lib/jmathplot.jar" />
 	</fileset>
 
 	<path id="libraries">
