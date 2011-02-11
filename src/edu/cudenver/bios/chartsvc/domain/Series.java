@@ -20,8 +20,8 @@
  */
 package edu.cudenver.bios.chartsvc.domain;
 
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Pojo for data series objects
@@ -31,7 +31,9 @@ import java.util.ArrayList;
 public class Series
 {
 	protected String label = null;
-	protected ArrayList<Point2D.Double> data = new ArrayList<Point2D.Double>();
+	protected ArrayList<Double> xList = new ArrayList<Double>();
+	protected ArrayList<Double> yList = new ArrayList<Double>();
+	protected ArrayList<Double> zList = new ArrayList<Double>();
 	
 	/**
 	 * Create a new data series with the specified label
@@ -43,13 +45,27 @@ public class Series
 	}
 	
 	/**
-	 * Add an x,y coordinate to the data series
-	 * @param x x coordinate
-	 * @param y y coordinate
+	 * Add an x value to the series
 	 */
-	public void addData(double x, double y) 
+	public void addX(double x)
 	{
-		data.add(new Point2D.Double(x,y));
+		xList.add(x);
+	}
+	
+	/**
+	 * Add a y value to the series
+	 */
+	public void addY(double y)
+	{
+		yList.add(y);
+	}
+	
+	/**
+	 * Add a z value to the series
+	 */
+	public void addZ(double z)
+	{
+		zList.add(z);
 	}
 
 	/**
@@ -60,16 +76,42 @@ public class Series
 	{
 		return label;
 	}
+	
+	
+	/**
+	 * Set the label for this series
+	 * @param label series label
+	 */
+	public void setLabel(String label)
+	{
+		this.label = label;
+	}
 
 	/**
-	 * Get the list of x,y coordinates for this data series
-	 * @return list of points
+	 * Get the list of X coordinates
+	 * @return X coordinates
 	 */
-	public ArrayList<Point2D.Double> getData()
+	public List<Double> getXCoordinates()
 	{
-		return data;
+		return xList;
 	}
 	
+	/**
+	 * Get the list of Y coordinates
+	 * @return Y coordinates
+	 */
+	public List<Double> getYCoordinates()
+	{
+		return yList;
+	}
 	
+	/**
+	 * Get the list of Z coordinates
+	 * @return Z coordinates
+	 */
+	public List<Double> getZCoordinates()
+	{
+		return zList;
+	}
 	
 }

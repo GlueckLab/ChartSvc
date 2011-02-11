@@ -47,6 +47,11 @@ public class ChartConstants
     public static final String ATTR_X = "x";
     public static final String ATTR_Y = "y";
 
-
-
+    // query parameters - based on the Google Chart API syntax
+	public static final String QPARAM_TITLE = "chtt";
+	public static final String QPARAM_DATA = "chd";
+	public static final String QPARAM_DATA_PREFIX = "t:";
+	public static final String QPARAM_AXIS_LABEL = "chxl";
+	public static final String QPARAM_TOKEN_SEPARATOR = "|";
+	public static final String QPARAM_VALUE_SEPARATOR = ",";
 }

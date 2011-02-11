@@ -20,6 +20,14 @@
  */
 package edu.cudenver.bios.chartsvc.resource;
 
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import org.math.plot.canvas.Plot3DCanvas;
+import org.restlet.data.Form;
 import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
 import org.w3c.dom.NamedNodeMap;
@@ -39,6 +47,13 @@ import edu.cudenver.bios.chartsvc.domain.Series;
  */
 public class ChartResourceHelper
 {
+	private enum CoordinateType
+	{
+		X,
+		Y,
+		Z
+	};
+	
 	/**
 	 * Create a chart object from an XML chart description
 	 * @param node node associated with the chart tag
@@ -163,8 +178,8 @@ public class ChartResourceHelper
         					Node yNode = pointAttrs.getNamedItem(ChartConstants.ATTR_Y);
         					if (xNode != null && yNode != null)
         					{
-        						series.addData(Double.parseDouble(xNode.getNodeValue()), 
-        								Double.parseDouble(yNode.getNodeValue()));
+        						series.addX(Double.parseDouble(xNode.getNodeValue()));
+        						series.addY(Double.parseDouble(yNode.getNodeValue()));
         					}
         				}
         				catch (NumberFormatException nfe)
@@ -178,4 +193,120 @@ public class ChartResourceHelper
         
 		return series;
 	}
+	
+	public static Chart chartFromQueryString(Form queryParams, boolean is3D)
+	throws ResourceException
+	{
+		Chart chart = new Chart();
+		
+		// get the title
+		String title = queryParams.getFirstValue(ChartConstants.QPARAM_TITLE);
+		if (title != null && !title.isEmpty()) chart.setTitle(title);
+		
+		// parse the axis labels
+		parseAxisLabels(chart, queryParams.getFirstValue(ChartConstants.QPARAM_AXIS_LABEL));
+		
+		// parse the data
+		String dataString = queryParams.getFirstValue(ChartConstants.QPARAM_DATA);
+		if (dataString != null)
+		{
+			if (is3D)
+				parseData(chart, dataString, CoordinateType.Z);
+			else
+				parseData(chart, dataString, CoordinateType.Y);
+		}
+		return chart;
+
+	}
+	
+	private static void parseData(Chart chart, String dataStr, CoordinateType maxCoordinate)
+	throws ResourceException
+	{
+		if (dataStr != null && dataStr.startsWith("t:"))
+		{
+	        StringCharacterIterator iterator = new StringCharacterIterator(dataStr, 2);
+	        int seriesCount = 0;
+	        Series series = new Series(Integer.toString(seriesCount));
+
+	        CoordinateType type = CoordinateType.X;
+	        int baseIndex = 2;
+	        while (iterator.current() != CharacterIterator.DONE) 
+	        {
+	            char c = iterator.current();
+	            if (c >= '0' && c <= '9' || c == '-' || c == '.') 
+	            {
+	                iterator.next();
+	            }
+	            else if (c == ',') 
+	            {
+	            	addDataValue(series, 
+	            			Double.parseDouble(dataStr.substring(baseIndex, iterator.getIndex())),
+	            			type);
+	                baseIndex = iterator.getIndex() + 1;
+	                iterator.next();
+	            }
+	            else if (c == '|') 
+	            {
+	            	addDataValue(series, 
+	            			Double.parseDouble(dataStr.substring(baseIndex, iterator.getIndex())),
+	            			type);
+	            	if (type == maxCoordinate)
+	            	{
+		                chart.addSeries(series);
+		                series = new Series(Integer.toString(++seriesCount));
+		                type = CoordinateType.X;
+	            	}
+	            	else
+	            	{
+	            		if (type == CoordinateType.X) 
+	            			type = CoordinateType.Y;
+	            		else if (type == CoordinateType.Y)
+	            			type = CoordinateType.Y;
+	            		else 
+	            			type = CoordinateType.X;
+	            	}
+	                baseIndex = iterator.getIndex() + 1;
+	                iterator.next();
+	            }
+	            else 
+	            {
+	                throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST,
+	                		"invalid data specification (chd)");
+	            }
+	        }
+        	addDataValue(series, 
+        			Double.parseDouble(dataStr.substring(baseIndex, iterator.getIndex())),
+        			type);
+            chart.addSeries(series);
+		}
+	}
+
+	private static void addDataValue(Series series, double value,	CoordinateType type)
+	{
+		switch (type)
+		{
+		case X:
+			series.addX(value);
+			break;
+		case Y:
+			series.addY(value);
+			break;
+		case Z:
+			series.addZ(value);
+			break;
+		}
+	}
+	
+	private static void parseAxisLabels(Chart chart, String axisLabels)
+	{
+		if (axisLabels != null)
+		{
+			StringTokenizer st = new StringTokenizer(axisLabels, ChartConstants.QPARAM_TOKEN_SEPARATOR);
+			while (st.hasMoreTokens()) 
+			{
+				Axis axis = new Axis(st.nextToken());
+			}
+		}
+	}
+	
 }

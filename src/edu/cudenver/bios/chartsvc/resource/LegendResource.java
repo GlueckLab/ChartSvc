@@ -217,10 +217,10 @@ public class LegendResource extends Resource
     	for(Series series: chart.getSeries())
     	{    		
     		XYSeries xySeries = new XYSeries(series.getLabel());
-    		for(Point2D.Double point: series.getData())
-    		{
-    			xySeries.add(point.x, point.y);
-    		}
+//    	TODO	for(Point2D.Double point: series.getData())
+//    		{
+//    			xySeries.add(point.x, point.y);
+//    		}
     		
     		// set the line style
             rend.setSeriesPaint(seriesIdx, Color.BLACK);

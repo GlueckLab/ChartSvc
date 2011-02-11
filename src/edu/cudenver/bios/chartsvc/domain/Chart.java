@@ -33,6 +33,7 @@ public class Chart
 	protected boolean legend = false;
 	protected Axis XAxis = null;
 	protected Axis YAxis = null;
+	protected Axis ZAxis = null;
 	protected ArrayList<Series> seriesList = new ArrayList<Series>();
 	
 	/**
@@ -79,6 +80,26 @@ public class Chart
 		YAxis = yAxis;
 	}
 
+	/**
+	 * Get the horizontal axis
+	 * @return horizontal axis object
+	 */
+	public Axis getZAxis()
+	{
+		return ZAxis;
+	}
+
+	/**
+	 * Set the X axis for this chart
+	 * @param xAxis axis object
+	 */
+	public void setZAxis(Axis zAxis)
+	{
+		ZAxis = zAxis;
+	}
+	
+	
+	
 	/**
 	 * Get the list of data series for this chart
 	 * @return list of data series
