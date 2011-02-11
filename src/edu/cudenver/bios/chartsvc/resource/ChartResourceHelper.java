@@ -301,10 +301,25 @@ public class ChartResourceHelper
 	{
 		if (axisLabels != null)
 		{
+			CoordinateType type = CoordinateType.X;
 			StringTokenizer st = new StringTokenizer(axisLabels, ChartConstants.QPARAM_TOKEN_SEPARATOR);
 			while (st.hasMoreTokens()) 
 			{
 				Axis axis = new Axis(st.nextToken());
+				switch (type)
+				{
+				case X:
+					chart.setXAxis(axis);
+					type = CoordinateType.Y;
+					break;
+				case Y:
+					chart.setYAxis(axis);
+					type = CoordinateType.Z;
+					break;
+				case Z:
+					chart.setYAxis(axis);
+					type = CoordinateType.X;
+				}
 			}
 		}
 	}
