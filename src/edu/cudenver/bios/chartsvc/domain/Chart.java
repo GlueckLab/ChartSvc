@@ -31,6 +31,8 @@ public class Chart
 {
 	protected String title = "";
 	protected boolean legend = false;
+	protected int width = 300;
+	protected int height = 300;
 	protected Axis XAxis = null;
 	protected Axis YAxis = null;
 	protected Axis ZAxis = null;
@@ -42,6 +44,42 @@ public class Chart
 	public Chart()
 	{
 		
+	}
+
+	/**
+	 * Get the width (pixels) of the chart
+	 * @return width
+	 */	
+	public int getWidth()
+	{
+		return width;
+	}
+
+	/**
+	 * Set the width (pixels) of the resulting chart image
+	 * @param width width of the chart image
+	 */
+	public void setWidth(int width)
+	{
+		this.width = width;
+	}
+
+	/**
+	 * Get the height (pixels) of the chart
+	 * @return height
+	 */	
+	public int getHeight()
+	{
+		return height;
+	}
+
+	/**
+	 * Set the height (pixels) of the resulting chart image
+	 * @param height height of the chart image
+	 */
+	public void setHeight(int height)
+	{
+		this.height = height;
 	}
 
 	/**

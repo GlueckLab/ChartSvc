@@ -100,7 +100,7 @@ public class ScatterPlot3DResource extends Resource
         	List<Double> yList = series.getXCoordinates();
         	List<Double> zList = series.getXCoordinates();
         	if (xList != null && yList != null && zList != null &&
-        			xList.size() == yList.size() && zList.size() == yList.size())
+        			xList.size() == yList.size() && zList.size() == xList.size() * yList.size())
         	{
         		// dump the lists into arrays
         		double[] x = new double[xList.size()];
@@ -122,11 +122,13 @@ public class ScatterPlot3DResource extends Resource
 	private double[][] buildZGrid(double[] x, double[] y, List<Double> zList)
 	{
 		double[][] zGrid = new double[x.length][y.length];
+		int zIdx = 0;
 		for (int i = 0; i < x.length; i++)
 		{
 			for (int j = 0; j < y.length; j++)
 			{
-				zGrid[j][i] = zList.get(i);
+				zGrid[i][j] = zList.get(zIdx);
+				zIdx++;
 			}
 		}
 		return zGrid;

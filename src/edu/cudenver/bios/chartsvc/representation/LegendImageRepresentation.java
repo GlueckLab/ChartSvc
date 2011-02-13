@@ -33,6 +33,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
 import org.restlet.data.MediaType;
 import org.restlet.resource.OutputRepresentation;
+import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.block.ColumnArrangement;
 import org.jfree.chart.block.RectangleConstraint;
 import org.jfree.ui.RectangleEdge;
@@ -75,16 +76,17 @@ public class LegendImageRepresentation extends OutputRepresentation
 		if (plot != null)
 		{
 			LegendTitle legend = new LegendTitle(plot, new ColumnArrangement(), new ColumnArrangement());
-			legend.setMargin(new RectangleInsets(1.0, 1.0, 1.0, 1.0));
+			legend.setFrame(BlockBorder.NONE);
+			//legend.setMargin(new RectangleInsets(2.0, 2.0, 2.0, 2.0));
 			legend.setBackgroundPaint(Color.white);
 			legend.setPosition(RectangleEdge.BOTTOM);
 			BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-			Graphics2D g2 = image.createGraphics();
+			Graphics2D g = image.createGraphics();
 			Rectangle2D.Double legendArea = new Rectangle2D.Double(0, 0, width, height);
-			g2.clip(legendArea);
-			legend.arrange(g2, new RectangleConstraint(width, height));
-			legend.draw(g2, legendArea);
-			g2.dispose();
+			g.clip(legendArea);
+			legend.arrange(g, new RectangleConstraint(width, height));
+			legend.draw(g, legendArea);
+			g.dispose();
 			EncoderUtil.writeBufferedImage(image, ImageFormat.JPEG, out);
 		}
 	}

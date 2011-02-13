@@ -24,6 +24,7 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.StringTokenizer;
 
 import org.math.plot.canvas.Plot3DCanvas;
@@ -47,6 +48,9 @@ import edu.cudenver.bios.chartsvc.domain.Series;
  */
 public class ChartResourceHelper
 {
+	private static int MAX_WIDTH = 800;
+	private static int MAX_HEIGHT = 800;
+	
 	private enum CoordinateType
 	{
 		X,
@@ -55,145 +59,14 @@ public class ChartResourceHelper
 	};
 	
 	/**
-	 * Create a chart object from an XML chart description
-	 * @param node node associated with the chart tag
-	 * @return chart object
+	 * Create a chart specification from a query string.  This API mimics the 
+	 * Google Chart API, with some added functionality for 3D plots
+	 * 
+	 * @param queryParams Form object with query parameters from the URL
+	 * @param is3D if true, parse as a 3D plot, otherwise 2D
+	 * @return Chart specification object
 	 * @throws ResourceException
 	 */
-	public static Chart chartFromDomNode(Node node)
-	throws ResourceException
-	{
-		Chart chart = new Chart();
-		
-        // make sure the root node is a chart
-        if (!node.getNodeName().equals(ChartConstants.TAG_CHART))
-            throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST, "Invalid root node '" + node.getNodeName() + "' when parsing chart object");
-        
-        // parse the title from the attribute list
-        NamedNodeMap attrs = node.getAttributes();
-        Node chartTitleNode = attrs.getNamedItem(ChartConstants.ATTR_TITLE);
-        if (chartTitleNode != null) chart.setTitle(chartTitleNode.getNodeValue());
-        // parse whether the legend should be displayed
-        Node legendNode = attrs.getNamedItem(ChartConstants.ATTR_LEGEND);
-        if (legendNode != null) 
-            chart.setLegend(Boolean.parseBoolean(legendNode.getNodeValue()));
-        
-        /* process the child elements.  Includes matrix and list inputs */
-        NodeList children = node.getChildNodes();
-        if (children != null && children.getLength() > 0)
-        {
-            for (int i = 0; i < children.getLength(); i++)
-            {
-                Node child = children.item(i);
-
-                if (ChartConstants.TAG_XAXIS.equals(child.getNodeName()))
-                {
-                	chart.setXAxis(axisFromDomNode(child));
-                }
-                else if (ChartConstants.TAG_YAXIS.equals(child.getNodeName()))
-                {
-                	chart.setYAxis(axisFromDomNode(child));
-                }
-                else if (ChartConstants.TAG_SERIES.equals(child.getNodeName()))
-                {
-                	chart.addSeries(seriesFromDomNode(child));
-                }
-                else 
-                {
-                    ChartLogger.getInstance().warn("Ignoring unknown tag while parsing chart: " + child.getNodeName());
-                }
-            }
-        }
-        
-        
-		return chart;
-	}
-	
-	/**
-	 * Create an axis object from an XML axis description
-	 * @param node node associated with the axis tag
-	 * @return axis object
-	 * @throws ResourceException
-	 */
-	public static Axis axisFromDomNode(Node node)
-	throws ResourceException
-	{
-		Axis axis = null;
-        NamedNodeMap attrs = node.getAttributes();
-        Node labelNode = attrs.getNamedItem(ChartConstants.ATTR_LABEL);
-        if (labelNode != null) axis = new Axis(labelNode.getNodeValue());
-        
-        if (axis != null)
-        {
-        	try
-        	{
-        		Node numTicksNode = attrs.getNamedItem(ChartConstants.ATTR_TICKS);
-        		if (numTicksNode != null) 
-        			axis.setNumberTicks(Integer.parseInt(numTicksNode.getNodeValue()));
-        		
-                Node rangeMinNode = attrs.getNamedItem(ChartConstants.ATTR_MIN);
-                if (rangeMinNode != null) 
-                    axis.setRangeMin(Double.parseDouble(rangeMinNode.getNodeValue()));
-                
-                Node rangeMaxNode = attrs.getNamedItem(ChartConstants.ATTR_MAX);
-                if (rangeMaxNode != null) 
-                    axis.setRangeMax(Double.parseDouble(rangeMaxNode.getNodeValue()));
-        	}
-        	catch (NumberFormatException e)
-        	{
-        		throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST, e);
-        	}
-        }
-        return axis;
-	}
-	
-	/**
-	 * Create an data series object from an XML data series description
-	 * @param node node associated with the data series tag
-	 * @return data series object
-	 * @throws ResourceException
-	 */
-	public static Series seriesFromDomNode(Node node)
-	throws ResourceException
-	{
-		Series series = null;
-        NamedNodeMap attrs = node.getAttributes();
-        Node labelNode = attrs.getNamedItem(ChartConstants.ATTR_LABEL);
-        if (labelNode != null) series = new Series(labelNode.getNodeValue());
-		
-        if (series != null)
-        {
-        	NodeList children = node.getChildNodes();
-        	if (children != null && children.getLength() > 0)
-        	{
-        		for (int i = 0; i < children.getLength(); i++)
-        		{
-        			Node child = children.item(i);
-        			if (ChartConstants.TAG_POINT.equals(child.getNodeName()))
-        			{
-        				NamedNodeMap pointAttrs = child.getAttributes();
-        				try
-        				{
-        					Node xNode = pointAttrs.getNamedItem(ChartConstants.ATTR_X);
-        					Node yNode = pointAttrs.getNamedItem(ChartConstants.ATTR_Y);
-        					if (xNode != null && yNode != null)
-        					{
-        						series.addX(Double.parseDouble(xNode.getNodeValue()));
-        						series.addY(Double.parseDouble(yNode.getNodeValue()));
-        					}
-        				}
-        				catch (NumberFormatException nfe)
-        				{
-        					ChartLogger.getInstance().warn("Ignoring invalid data point", nfe);
-        				}
-        			}
-        		}
-        	}
-        }
-        
-		return series;
-	}
-	
 	public static Chart chartFromQueryString(Form queryParams, boolean is3D)
 	throws ResourceException
 	{
@@ -202,6 +75,9 @@ public class ChartResourceHelper
 		// get the title
 		String title = queryParams.getFirstValue(ChartConstants.QPARAM_TITLE);
 		if (title != null && !title.isEmpty()) chart.setTitle(title);
+		
+		// parse the chart dimension
+		parseSize(chart, queryParams.getFirstValue(ChartConstants.QPARAM_SIZE));
 		
 		// parse the axis labels
 		parseAxisLabels(chart, queryParams.getFirstValue(ChartConstants.QPARAM_AXIS_LABEL));
@@ -215,8 +91,37 @@ public class ChartResourceHelper
 			else
 				parseData(chart, dataString, CoordinateType.Y);
 		}
+		
+		// parse the data series labels - NOTE this needs to be called after 
+		// parseData so the series objects are already created
+		parseSeriesLabels(chart, queryParams.getFirstValue(ChartConstants.QPARAM_SERIES_LABEL));
+		
 		return chart;
 
+	}
+	
+	private static void parseSize(Chart chart, String sizeStr)
+	{
+		if (sizeStr != null)
+		{
+			StringTokenizer st = new StringTokenizer(sizeStr, "x");
+			if (st.hasMoreTokens())
+			{
+				int width = Integer.parseInt(st.nextToken());
+				if (width > 0 && width < MAX_WIDTH)
+				{
+					chart.setWidth(width);
+				}
+			}
+			if (st.hasMoreTokens())
+			{
+				int height = Integer.parseInt(st.nextToken());
+				if (height > 0 && height < MAX_HEIGHT)
+				{
+					chart.setHeight(height);
+				}
+			}
+		}
 	}
 	
 	private static void parseData(Chart chart, String dataStr, CoordinateType maxCoordinate)
@@ -261,7 +166,7 @@ public class ChartResourceHelper
 	            		if (type == CoordinateType.X) 
 	            			type = CoordinateType.Y;
 	            		else if (type == CoordinateType.Y)
-	            			type = CoordinateType.Y;
+	            			type = CoordinateType.Z;
 	            		else 
 	            			type = CoordinateType.X;
 	            	}
@@ -294,6 +199,29 @@ public class ChartResourceHelper
 		case Z:
 			series.addZ(value);
 			break;
+		}
+	}
+	
+	private static void parseSeriesLabels(Chart chart, String seriesLabels)
+	{
+		if (seriesLabels != null)
+		{
+			List<Series> seriesList = chart.getSeries();
+			ListIterator<Series> seriesIterator = seriesList.listIterator();
+			StringTokenizer st = new StringTokenizer(seriesLabels, ChartConstants.QPARAM_TOKEN_SEPARATOR);
+			if (st.hasMoreTokens()) chart.setLegend(true);
+			while (st.hasMoreTokens()) 
+			{
+				if (seriesIterator.hasNext())
+				{
+					Series currentSeries = seriesIterator.next();
+					currentSeries.setLabel(st.nextToken());
+				}
+				else
+				{
+					break;
+				}
+			}
 		}
 	}
 	

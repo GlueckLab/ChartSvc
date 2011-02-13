@@ -134,7 +134,8 @@ public class LegendResource extends Resource
 			// build a JFreeChart from the specs
 			XYPlot renderedChart = buildScatterPlot(chartSpecification);
 			// write to an image representation
-			rep = new LegendImageRepresentation(renderedChart, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+			rep = new LegendImageRepresentation(renderedChart, chartSpecification.getWidth(), 
+					chartSpecification.getHeight());
 
 			// Add file save headers if requested
 			String saveStr = queryParams.getFirstValue(FORM_TAG_SAVE);
@@ -171,91 +172,6 @@ public class LegendResource extends Resource
 
 		return rep;
 	}
-	
-    /**
-     * Process a POST request to perform a set of power
-     * calculations.  Please see REST API documentation for details on
-     * the entity body format.
-     * 
-     * @param entity HTTP entity body for the request
-     */
-    @Override 
-    public void acceptRepresentation(Representation entity)
-    {
-        try
-        {
-            Form form = new Form(entity);
-            String chartSpecificationXML = form.getFirstValue(FORM_TAG_CHART);
-            if (chartSpecificationXML == null || chartSpecificationXML.isEmpty())
-                throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST, "Missing chart specification");
-
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new StringReader(chartSpecificationXML)));
-            
-            // parse the chart parameters from the entity body
-            Chart chartSpecification = ChartResourceHelper.chartFromDomNode(doc.getDocumentElement());
-
-            // build a JFreeChart from the specs
-            XYPlot plot = buildScatterPlot(chartSpecification);
-            // write to an image representation
-            LegendImageRepresentation response = 
-            	new LegendImageRepresentation(plot, DEFAULT_WIDTH, DEFAULT_HEIGHT);
-
-            // Add file save headers if requested
-            String saveStr = form.getFirstValue(FORM_TAG_SAVE);
-            boolean save = Boolean.parseBoolean(saveStr);
-            if (save)
-            {
-                Form responseHeaders = (Form) getResponse().getAttributes().get("org.restlet.http.headers");  
-                if (responseHeaders == null)  
-                {  
-                    responseHeaders = new Form();  
-                    getResponse().getAttributes().put("org.restlet.http.headers", responseHeaders);  
-                }  
-                responseHeaders.add("Content-type", "application/force-download");
-                responseHeaders.add("Content-disposition", "attachment; filename=chart.jpg");
-            }
-      
-            getResponse().setEntity(response); 
-            getResponse().setStatus(Status.SUCCESS_CREATED);
-        }
-        catch (SAXException se)
-        {
-            ChartLogger.getInstance().error(se.getMessage());
-            try { getResponse().setEntity(new ErrorXMLRepresentation(se.getMessage())); }
-            catch (IOException e) {}
-            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
-        }
-        catch (ParserConfigurationException pe)
-        {
-            ChartLogger.getInstance().error(pe.getMessage());
-            try { getResponse().setEntity(new ErrorXMLRepresentation(pe.getMessage())); }
-            catch (IOException e) {}
-            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
-        }
-        catch (IOException ioe)
-        {
-            ChartLogger.getInstance().error(ioe.getMessage());
-            try { getResponse().setEntity(new ErrorXMLRepresentation(ioe.getMessage())); }
-            catch (IOException e) {}
-            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
-        }
-        catch (IllegalArgumentException iae)
-        {
-            ChartLogger.getInstance().error(iae.getMessage());
-            try { getResponse().setEntity(new ErrorXMLRepresentation(iae.getMessage())); }
-            catch (IOException e) {}
-            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
-        }
-        catch (ResourceException re)
-        {
-            ChartLogger.getInstance().error(re.getMessage());
-            try { getResponse().setEntity(new ErrorXMLRepresentation(re.getMessage())); }
-            catch (IOException e) {}
-            getResponse().setStatus(re.getStatus());
-        }
-    }
     
 	private XYPlot buildScatterPlot(Chart chart)
 	throws ResourceException
