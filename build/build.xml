@@ -19,7 +19,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  -->
 <project name="chart" default="test">
-    
+	
+	<property environment="env"/>
+	<property name="catalina.home" value="${env.CATALINA_HOME}" />
     <property name="svcname" value="chart" />
     <property name="wardir" value="${basedir}/war" />
     <property name="sourcedir" value="${basedir}/../src" />
@@ -151,4 +153,15 @@
 			</manifest>
 		</jar>
 	</target>
+	<target name="deploy" description="This target moves the ${svcname}.war 
+		to the user's catalina.home\webapps directory." >
+		<copy todir="${catalina.home}\webapps">
+			<fileset dir="${bindir}">
+				<include name="${svcname}.war"/>
+			</fileset>
+		</copy>
+		<echo>Deployed the ${svcname}.war to ${catalina.home}\webapps</echo>
+	</target>
+		
+	<target name="buildDeploy" depends="test, deploy"/>
 </project>
