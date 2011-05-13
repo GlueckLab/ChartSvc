@@ -139,8 +139,13 @@
 	
 	<!-- Create the source distribution -->
 	<target name="source-distribution">
-		<jar destfile="${bindir}/${svcname}-source.jar" basedir="${basedir}/.." 
-			includes="src/**,build/**,docs/**,.classpath,.project,LICENSE-gpl2.0.txt,README.txt">
+		<jar destfile="${bindir}/${svcname}-source.jar" basedir="${basedir}/../.." 
+			includes="ChartSvc/*,
+				ChartSvc/build/build.xml,
+				ChartSvc/config/**,
+				ChartSvc/src/**,
+				ChartSvc/text/**,
+				ChartSvc/WebContent/**">		
 			<manifest>
 				<attribute name="Author" value="Sarah Kreidler"/>
 				<section name="Shared">
