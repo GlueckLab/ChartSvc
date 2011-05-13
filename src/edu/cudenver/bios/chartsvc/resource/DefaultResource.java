@@ -29,6 +29,8 @@ import org.restlet.resource.Resource;
 import org.restlet.resource.StringRepresentation;
 import org.restlet.resource.Variant;
 
+import edu.cudenver.bios.chartsvc.application.ChartConstants;
+
 
 /**
  * Default request resource.  Called from the URI /power
@@ -56,7 +58,8 @@ public class DefaultResource extends Resource
     @Override
     public Representation represent(Variant variant) {
         Representation representation = 
-            new StringRepresentation("Chart REST Service", MediaType.TEXT_PLAIN);
+            new StringRepresentation("Chart REST Service, version " + ChartConstants.VERSION, 
+            		MediaType.TEXT_PLAIN);
 
         return representation;
     }
