@@ -28,7 +28,7 @@
     <property name="bindir" value="${basedir}/bin" />
     <property name="wcdir" value="${basedir}/../WebContent" />
 	<property name="thirdpartydir" value="${basedir}/../../thirdparty" />
-	<property name="javadocdir" value="${basedir}/javadoc" />
+	<property name="javadocdir" value="${basedir}/javadoc/ChartSvc-javadoc" />
 	
 	<fileset id="thirdpartylibs" dir="${thirdpartydir}">
 		<include name="restlet/1.1.6/lib/org.restlet.jar" />
@@ -123,7 +123,7 @@
     
 	<!-- Create the javadoc distribution  -->
 	<target name="javadoc-distribution" depends="javadoc">
-		<jar destfile="${bindir}/${svcname}-javadoc.jar" basedir="${javadocdir}" >
+		<jar destfile="${bindir}/${svcname}-javadoc.jar" basedir="${javadocdir}/.." >
 			<manifest>
 				<attribute name="Author" value="Sarah Kreidler"/>
 				<section name="Shared">
