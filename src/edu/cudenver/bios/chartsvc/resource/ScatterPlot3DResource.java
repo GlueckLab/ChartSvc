@@ -4,71 +4,30 @@ import java.awt.Color;
 import java.util.List;
 
 import org.math.plot.canvas.Plot3DCanvas;
-import org.restlet.Context;
 import org.restlet.data.Form;
-import org.restlet.data.MediaType;
-import org.restlet.data.Request;
-import org.restlet.data.Response;
-import org.restlet.resource.Representation;
-import org.restlet.resource.Resource;
+import org.restlet.representation.Representation;
+import org.restlet.representation.Variant;
+import org.restlet.resource.Get;
 import org.restlet.resource.ResourceException;
-import org.restlet.resource.Variant;
+import org.restlet.resource.ServerResource;
 
 import edu.cudenver.bios.chartsvc.domain.Chart;
 import edu.cudenver.bios.chartsvc.domain.Series;
 import edu.cudenver.bios.chartsvc.representation.ChartImage3DRepresentation;
 import edu.cudenver.bios.chartsvc.representation.ErrorXMLRepresentation;
 
-public class ScatterPlot3DResource extends Resource
+public class ScatterPlot3DResource extends ServerResource
 {
     private Form queryParams= null;
-	/**
-	 * Create a 3d scatter plot 
-	 * @param context restlet context
-	 * @param request HTTP request object
-	 * @param response HTTP response object
-	 */
-    public ScatterPlot3DResource(Context context, Request request, Response response) 
-    {
-        super(context, request, response);
-        queryParams = request.getResourceRef().getQueryAsForm();
-        // This representation has only one type of representation.
-        getVariants().add(new Variant(MediaType.IMAGE_JPEG));
-    }
 	
-    /**
-     * Disallow GET requests
-     */
-    @Override
-    public boolean allowGet()
-    {
-        return true;
-    }
 
-    /**
-     * Disallow PUT requests
-     */
-    @Override
-    public boolean allowPut()
-    {
-        return false;
-    }
-
-    /**
-     * Allow POST requests to create a power list
-     */
-    @Override
-    public boolean allowPost() 
-    {
-        return  false;
-    }
-    
     /**
      * Returns a full representation for a given variant.
      */
-    @Override
+    @Get
     public Representation represent(Variant variant) 
     {
+    	queryParams = getRequest().getResourceRef().getQueryAsForm();
     	Representation rep = null;
     	try
     	{

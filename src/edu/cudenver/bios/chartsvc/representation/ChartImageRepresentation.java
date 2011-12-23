@@ -26,7 +26,8 @@ import java.io.OutputStream;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.restlet.data.MediaType;
-import org.restlet.resource.OutputRepresentation;
+import org.restlet.representation.OutputRepresentation;
+import org.restlet.resource.Get;
 
 /**
  * Class to create a JPEG image representation of the chart
@@ -58,7 +59,7 @@ public class ChartImageRepresentation extends OutputRepresentation
 	 * response.
 	 * @param out output stream
 	 */
-	@Override
+	@Get
 	public void write(OutputStream out) throws IOException
 	{
 		ChartUtilities.writeChartAsJPEG(out, chart, width, height);

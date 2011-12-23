@@ -22,21 +22,15 @@ package edu.cudenver.bios.chartsvc.resource;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.StringTokenizer;
 
-import org.math.plot.canvas.Plot3DCanvas;
 import org.restlet.data.Form;
 import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import edu.cudenver.bios.chartsvc.application.ChartConstants;
-import edu.cudenver.bios.chartsvc.application.ChartLogger;
 import edu.cudenver.bios.chartsvc.domain.Axis;
 import edu.cudenver.bios.chartsvc.domain.Chart;
 import edu.cudenver.bios.chartsvc.domain.Series;
