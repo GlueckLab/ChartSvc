@@ -108,6 +108,7 @@
             <header><![CDATA[<p><b>power service</b></p>]]></header>
             <bottom><![CDATA[<font size=1>CU Denver Biostatistic Department</font>]]></bottom>
             <link href="http://java.sun.com/javase/6/docs/api"/>
+        	<classpath refid="libraries" />
         </javadoc>
     </target>
     
