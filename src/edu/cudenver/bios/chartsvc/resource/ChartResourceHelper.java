@@ -57,7 +57,7 @@ public class ChartResourceHelper
 	private enum LineStyleType
     {
         THICKNESS,
-        DASHED_LENGTH,
+        DASH_LENGTH,
         SPACE_LENGTH
     };
 	
@@ -275,9 +275,6 @@ public class ChartResourceHelper
 	{
 	    ArrayList<LineStyle> lineStyleArray = new ArrayList<LineStyle>();
 	    
-	    int size = lineStyleString.length();
-	    /*int iteratorPosition = 0;*/
-	    /*if(lineStyleString != null && lineStyleString.startsWith("t:"))*/
 	    if(lineStyleString != null)
 	    {
 	        StringCharacterIterator iterator = new StringCharacterIterator(lineStyleString, 0);
@@ -295,60 +292,51 @@ public class ChartResourceHelper
                 else if (c == ',') 
                 {
                     Double value = Double.parseDouble(lineStyleString.substring(baseIndex, iterator.getIndex()));
-                    if(type == LineStyleType.THICKNESS)
-                    {
-                        addLineStyleValue(lineStyle, value, type);
-                        type = LineStyleType.DASHED_LENGTH;
-                    }
-                    if(type == LineStyleType.DASHED_LENGTH)
-                    {
-                        addLineStyleValue(lineStyle, value, type);
+                    switch (type) {
+                    case THICKNESS:
+                        lineStyle.setWidth(value);
+                        type = LineStyleType.DASH_LENGTH;
+                        break;
+                    case DASH_LENGTH:
+                        lineStyle.setDashLength(value);
+                        type = LineStyleType.SPACE_LENGTH;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("invalid line style (ls)");
                     }
                     baseIndex = iterator.getIndex() + 1;
                     iterator.next();
-                   /* iteratorPosition = iterator.getIndex();*/
-                }
-                else if (c == '|') 
-                {
-                    Double value = Double.parseDouble(lineStyleString.substring(baseIndex, iterator.getIndex()));
-                    addLineStyleValue(lineStyle, value, LineStyleType.SPACE_LENGTH);
-                    lineStyleArray.add(lineStyle);
-                    lineStyle = new LineStyle();
-                    type = LineStyleType.THICKNESS;
+
+                } else if (c == '|') {
+                    if (type == LineStyleType.SPACE_LENGTH) {
+                        Double value = Double.parseDouble(lineStyleString.substring(baseIndex, iterator.getIndex()));
+                        lineStyle.setSpaceLength(value);
+                        lineStyleArray.add(lineStyle);
+                        // start a new linestyle
+                        lineStyle = new LineStyle();
+                        type = LineStyleType.THICKNESS;
+                    } else {
+                        throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST,
+                                "invalid line style specification (ls)");
+                    }
+                    
                     baseIndex = iterator.getIndex() + 1;
                     iterator.next();
-                }
-                else if(size == CharacterIterator.DONE)
-                {
-                    Double value = Double.parseDouble(lineStyleString.substring(baseIndex, iterator.getIndex()));
-                    addLineStyleValue(lineStyle, value, LineStyleType.SPACE_LENGTH);
-                    lineStyleArray.add(lineStyle);
-                }
-                else 
-                {
+                } else {
                     throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST,
-                            "invalid line style specification (chd)");
+                            "invalid line style specification (ls)");
                 }
             }
-            lineStyleArray.add(lineStyle);
+            // pickup the final line style
+            if (type == LineStyleType.SPACE_LENGTH) {
+                Double value = Double.parseDouble(lineStyleString.substring(baseIndex, iterator.getIndex()));
+                lineStyle.setSpaceLength(value);
+                lineStyleArray.add(lineStyle);
+            }
+            
         }
 	    chart.setLineStyleArray(lineStyleArray);
 	    
 	}
-	private static void addLineStyleValue(LineStyle lineStyle, double value,  LineStyleType type)
-    {
-        switch (type)
-        {
-        case THICKNESS:
-            lineStyle.setWidth(value);
-            break;
-        case DASHED_LENGTH:
-            lineStyle.setDashLength(value);
-            break;
-        case SPACE_LENGTH:
-            lineStyle.setSpaceLength(value);
-            break;
-        }
-    }
 	
 }

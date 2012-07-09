@@ -33,10 +33,6 @@ public class LineStyle
     protected double dashLength = 1.0f;
     protected double spaceLength = 10.0f;
     
-    /*protected ArrayList<Double> width = new ArrayList<Double>();
-    protected ArrayList<Double> dashLength = new ArrayList<Double>();
-    protected ArrayList<Double> spaceLength = new ArrayList<Double>();*/
-    
         
     public void setWidth(double width)
     {
@@ -68,33 +64,4 @@ public class LineStyle
         return spaceLength;
     }
     
-    /*public void addLineWidth(double lineWidth)
-    {
-        width.add(lineWidth);
-    }
-    
-    public void addDashLength(double dashLengthSize)
-    {
-        dashLength.add(dashLengthSize);
-    }
-    
-    public void addSpaceLength(double spaceLengthSize)
-    {
-        spaceLength.add(spaceLengthSize);
-    }
-    
-    public List<Double> getLineWidth()
-    {
-        return width;
-    }
-    
-    public List<Double> getLineDashLength()
-    {
-        return dashLength;
-    }
-    
-    public List<Double> getLineSpaceLength()
-    {
-        return spaceLength;
-    }*/
 }
