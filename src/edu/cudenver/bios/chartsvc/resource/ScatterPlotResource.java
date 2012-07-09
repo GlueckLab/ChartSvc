@@ -23,6 +23,7 @@ package edu.cudenver.bios.chartsvc.resource;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jfree.chart.JFreeChart;
@@ -47,6 +48,7 @@ import org.restlet.resource.ServerResource;
 import edu.cudenver.bios.chartsvc.application.ChartLogger;
 import edu.cudenver.bios.chartsvc.domain.Axis;
 import edu.cudenver.bios.chartsvc.domain.Chart;
+import edu.cudenver.bios.chartsvc.domain.LineStyle;
 import edu.cudenver.bios.chartsvc.domain.Series;
 import edu.cudenver.bios.chartsvc.representation.ChartImageRepresentation;
 import edu.cudenver.bios.chartsvc.representation.ErrorXMLRepresentation;
@@ -133,6 +135,12 @@ public class ScatterPlotResource extends ServerResource
 	private JFreeChart buildScatterPlot(Chart chart)
 	throws ResourceException
 	{
+	    ArrayList<LineStyle> lineStyleList = chart.getLineStyleList();
+	    
+	    float dashedLength = 1.0f;
+        float spaceLength = 1.0f;
+        float thickness = 1.0f;
+        
 		// the first series is treated as the x values
 		if (chart.getSeries() == null || chart.getSeries().size() <= 0)
 			throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST, "No data series specified");
@@ -143,8 +151,9 @@ public class ScatterPlotResource extends ServerResource
 		XYSplineRenderer rend = new XYSplineRenderer();
 
 		int seriesIdx = 0;
+		
 		for(Series series: chart.getSeries())
-		{    		
+		{
 			XYSeries xySeries = new XYSeries(series.getLabel());
 			
 			List<Double> xList = series.getXCoordinates();
@@ -156,14 +165,32 @@ public class ScatterPlotResource extends ServerResource
 					xySeries.add(xList.get(i), yList.get(i));
 				}
 			}
-
+			
+			if(seriesIdx>=0 && seriesIdx <lineStyleList.size())
+			{
+			    LineStyle lineStyle = lineStyleList.get(seriesIdx);
+                dashedLength = (float)lineStyle.getDashLength();
+                spaceLength = (float)lineStyle.getSpaceLength();
+                thickness = (float)lineStyle.getWidth();
+			}
+			else
+			{
+			    dashedLength = 1.0f;
+                spaceLength = 1.0f;
+                thickness = 1.0f;
+			}
+			
 			// set the line style
 			rend.setSeriesPaint(seriesIdx, Color.BLACK);
-			if (seriesIdx > 0)
+			
+			if (seriesIdx >= 0)
 			{
-				rend.setSeriesStroke(seriesIdx, 
-						new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-								1.0f, new float[] {(float) seriesIdx, (float) 2*seriesIdx}, 0.0f));
+				/*rend.setSeriesStroke(seriesIdx, 
+						new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+								1.0f, new float[] {(float) seriesIdx, (float) 2*seriesIdx}, 0.0f));*/
+			   rend.setSeriesStroke(seriesIdx, 
+                        new BasicStroke(thickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                                1.0f, new float[] {dashedLength, spaceLength}, 0.0f));
 			}
 			// add the series to the data set
 			chartData.addSeries(xySeries);

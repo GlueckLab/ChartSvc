@@ -37,7 +37,7 @@ public class Chart
 	protected Axis YAxis = null;
 	protected Axis ZAxis = null;
 	protected ArrayList<Series> seriesList = new ArrayList<Series>();
-	
+	protected ArrayList<LineStyle> lineStyleList = new ArrayList<LineStyle>();
 	/**
 	 * Create an empty chart description
 	 */
@@ -136,8 +136,6 @@ public class Chart
 		ZAxis = zAxis;
 	}
 	
-	
-	
 	/**
 	 * Get the list of data series for this chart
 	 * @return list of data series
@@ -191,6 +189,31 @@ public class Chart
     {
         this.legend = legend;
     }
-	
-	
+    
+    /**
+     * Specify the line style for plotting.
+     * @param lineStyleList
+     */
+    public void addLineStyle(LineStyle lineStyle)
+    {
+        lineStyleList.add(lineStyle);
+    }
+    
+    /**
+     * Specifiec linestyles can be set at once.
+     * @param lineStyleArray
+     */
+    public void setLineStyleArray(ArrayList<LineStyle> lineStyleArray)
+    {
+        lineStyleList = lineStyleArray;
+    }
+    
+    /**
+     * Returns the line styles for plotting. 
+     * @return
+     */
+    public ArrayList<LineStyle> getLineStyleList()
+    {
+        return lineStyleList;
+    }
 }
