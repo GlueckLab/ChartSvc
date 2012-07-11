@@ -19,14 +19,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package edu.cudenver.bios.chartsvc.representation;
-
 import java.io.IOException;
-
 import org.restlet.data.MediaType;
 import org.restlet.ext.xml.DomRepresentation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 import edu.cudenver.bios.chartsvc.application.ChartConstants;
 
 /**
