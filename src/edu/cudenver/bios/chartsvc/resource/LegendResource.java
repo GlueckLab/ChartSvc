@@ -22,42 +22,27 @@ package edu.cudenver.bios.chartsvc.resource;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYSplineRenderer;
-import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.restlet.Context;
 import org.restlet.data.Form;
-import org.restlet.data.MediaType;
-import org.restlet.data.Request;
-import org.restlet.data.Response;
 import org.restlet.data.Status;
-import org.restlet.resource.Representation;
-import org.restlet.resource.Resource;
+import org.restlet.representation.Representation;
+import org.restlet.representation.Variant;
+import org.restlet.resource.Get;
 import org.restlet.resource.ResourceException;
-import org.restlet.resource.Variant;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import org.restlet.resource.ServerResource;
 
 import edu.cudenver.bios.chartsvc.application.ChartLogger;
 import edu.cudenver.bios.chartsvc.domain.Axis;
 import edu.cudenver.bios.chartsvc.domain.Chart;
 import edu.cudenver.bios.chartsvc.domain.Series;
-import edu.cudenver.bios.chartsvc.representation.ChartImageRepresentation;
 import edu.cudenver.bios.chartsvc.representation.ErrorXMLRepresentation;
 import edu.cudenver.bios.chartsvc.representation.LegendImageRepresentation;
 
@@ -68,7 +53,7 @@ import edu.cudenver.bios.chartsvc.representation.LegendImageRepresentation;
  * @author Sarah Kreidler
  *
  */
-public class LegendResource extends Resource 
+public class LegendResource extends ServerResource 
 {
 	private static final int DEFAULT_WIDTH = 300;
 	private static final int DEFAULT_HEIGHT = 300;
@@ -78,53 +63,16 @@ public class LegendResource extends Resource
 
 	private Form queryParams= null;
 	
-	/**
-	 * Create a scatter plot 
-	 * @param context restlet context
-	 * @param request HTTP request object
-	 * @param response HTTP response object
-	 */
-    public LegendResource(Context context, Request request, Response response) 
-    {
-        super(context, request, response);
-		queryParams = request.getResourceRef().getQueryAsForm();
-        // This representation has only one type of representation.
-        getVariants().add(new Variant(MediaType.IMAGE_JPEG));
-    }
+	
 
     /**
      * Disallow GET requests
      */
-    @Override
-    public boolean allowGet()
-    {
-        return true;
-    }
-
-    /**
-     * Disallow PUT requests
-     */
-    @Override
-    public boolean allowPut()
-    {
-        return false;
-    }
-
-    /**
-     * Allow POST requests to create a power list
-     */
-    @Override
-    public boolean allowPost() 
-    {
-        return  false;
-    }
-
-	/**
-	 * Returns a full representation for a given variant.
-	 */
-	@Override
+    
+	@Get
 	public Representation represent(Variant variant) 
 	{
+		queryParams = getRequest().getResourceRef().getQueryAsForm();
 		LegendImageRepresentation rep = null;
 		try
 		{

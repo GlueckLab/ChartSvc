@@ -27,17 +27,16 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.block.ColumnArrangement;
+import org.jfree.chart.block.RectangleConstraint;
 import org.jfree.chart.encoders.EncoderUtil;
 import org.jfree.chart.encoders.ImageFormat;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
-import org.restlet.data.MediaType;
-import org.restlet.resource.OutputRepresentation;
-import org.jfree.chart.block.BlockBorder;
-import org.jfree.chart.block.ColumnArrangement;
-import org.jfree.chart.block.RectangleConstraint;
 import org.jfree.ui.RectangleEdge;
-import org.jfree.ui.RectangleInsets;
+import org.restlet.data.MediaType;
+import org.restlet.representation.OutputRepresentation;
 /**
  * Class to create a JPEG image representation of the chart legend
  * @author Sarah Kreidler

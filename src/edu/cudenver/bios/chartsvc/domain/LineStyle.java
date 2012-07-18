@@ -18,35 +18,50 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package edu.cudenver.bios.chartsvc.resource;
-
-import org.restlet.data.MediaType;
-import org.restlet.representation.Representation;
-import org.restlet.representation.StringRepresentation;
-import org.restlet.representation.Variant;
-import org.restlet.resource.Get;
-import org.restlet.resource.ServerResource;
-
-import edu.cudenver.bios.chartsvc.application.ChartConstants;
-
-
+package edu.cudenver.bios.chartsvc.domain;
 /**
- * Default request resource.  Called from the URI /power
- * Simply returns a self-identifying message for the server
+ * Line Style Object
+ * @author VIJAY AKULA
+ *
  */
-public class DefaultResource extends ServerResource
+
+public class LineStyle 
 {
-	
 
-    /**
-     * Returns a full representation for a given variant.
-     */
-    @Get
-    public Representation represent(Variant variant) {
-        Representation representation = 
-            new StringRepresentation("Chart REST Service, version " + ChartConstants.VERSION, 
-            		MediaType.TEXT_PLAIN);
-
-        return representation;
+    protected String lineStyleLabel = null;
+    protected double width = 1.0f;
+    protected double dashLength = 1.0f;
+    protected double spaceLength = 10.0f;
+    
+        
+    public void setWidth(double width)
+    {
+        this.width = width;
     }
+    
+    public void setDashLength(double dashLength)
+    {
+        this.dashLength = dashLength;
+    }
+    
+    public void setSpaceLength(double spaceLength)
+    {
+        this.spaceLength = spaceLength;
+    }
+    
+    public double getWidth()
+    {
+        return width;
+    }
+    
+    public double getDashLength()
+    {
+        return dashLength;
+    }
+    
+    public double getSpaceLength()
+    {
+        return spaceLength;
+    }
+    
 }
