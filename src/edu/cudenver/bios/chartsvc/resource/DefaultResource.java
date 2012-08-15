@@ -43,8 +43,11 @@ public class DefaultResource extends ServerResource
      */
     @Get
     public Representation represent(Variant variant) {
+        String version = 
+                getApplication().getContext().getParameters().getFirstValue(
+                        "edu.ucdenver.bios.chartsvc.application.version");
         Representation representation = 
-            new StringRepresentation("Chart REST Service, version " + ChartConstants.VERSION, 
+            new StringRepresentation("Chart REST Service, version " + version, 
             		MediaType.TEXT_PLAIN);
 
         return representation;
