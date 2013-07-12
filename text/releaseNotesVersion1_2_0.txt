@@ -1,0 +1,6 @@
+Chart Service 1.2.0 Release Notes
+--------------------------------------------
+
+1. Added API to specify the line style of a data series.  Line styles are
+specified as width, dash length, and space length using the "ls"
+query parameter.  See the API document for details.

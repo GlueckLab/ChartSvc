@@ -56,4 +56,5 @@ public class ChartConstants
 	public static final String QPARAM_AXIS_LABEL = "chxl";
 	public static final String QPARAM_TOKEN_SEPARATOR = "|";
 	public static final String QPARAM_VALUE_SEPARATOR = ",";
+	public static final String QPARAM_LINE_STYLE = "ls";
 }
