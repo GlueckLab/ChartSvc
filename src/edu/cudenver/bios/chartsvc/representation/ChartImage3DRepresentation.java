@@ -28,7 +28,8 @@ import javax.imageio.ImageIO;
 
 import org.math.plot.canvas.Plot3DCanvas;
 import org.restlet.data.MediaType;
-import org.restlet.resource.OutputRepresentation;
+import org.restlet.representation.OutputRepresentation;
+import org.restlet.resource.Get;
 
 /**
  * Class to create a JPEG image representation of the chart
@@ -56,7 +57,7 @@ public class ChartImage3DRepresentation extends OutputRepresentation
 	 * response.
 	 * @param out output stream
 	 */
-	@Override
+	@Get
 	public void write(OutputStream out) throws IOException
 	{
 		chart.setSize(300,300);
